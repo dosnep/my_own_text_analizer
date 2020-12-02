@@ -1,0 +1,35 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the v.1.x branch
+on:
+  push:
+    branches: [ master ]
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  ssh-init:    
+    
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      - name: Clone repo git and Build docker image to a remote server
+        shell: bash
+        env: 
+          AWS_HOST : ${{ secrets.AWS_HOST }}
+          AWS_PASSWORD : ${{ secrets.AWS_PASSWORD }}
+          AWS_PUB : ${{ secrets.AWS_PUB }}
+        run: 
+          mkdir -p ~/.ssh;
+          echo "$AWS_PASSWORD" > ~/.ssh/ecs-key.pem;
+          echo "$AWS_PUB" > ~/.ssh/known_hosts;
+          chmod 400 ~/.ssh/ecs-key.pem;
+          ssh -i ~/.ssh/ecs-key.pem ec2-user@$AWS_HOST ' rm -rf ~/dev/project/*; cd ~/dev/project; 
+          git clone git@github.com:dosnep/python_project_starter_kit.git; cd ~/dev/project/python_project_starter_kit; make package name=web_application;
+          cd ~/dev/project//python_project_starter_kit/docker; cp ~/dev/project//python_project_starter_kit/dist/web_application.pex .; 
+          sudo docker build . -t web_application; sudo docker container stop web_application_container; sudo docker container prune -f; sudo docker run --name web_application_container -d -p 5000:5000 -h 0.0.0.0:0.0.0.0 web_application' 

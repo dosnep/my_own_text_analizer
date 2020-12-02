@@ -1,0 +1,5 @@
+package/*/.venv/*
+package/*/project/__pycache__
+package/*/project/*/__pycache__
+package/*/dist/*
+.idea
